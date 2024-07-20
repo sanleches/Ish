@@ -181,6 +181,16 @@ Token tokenizer(ish_void) {
 			currentToken.code = RBR_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
+
+		case '<':
+			if (readerGetChar(sourceBuffer) + 1 == '-') {
+				currentToken.code = ASSI_T;
+				scData.scanHistogram[currentToken.code]++;
+			}
+			else {
+				continue;
+			}
+
 		/* Cases for END OF FILE */
 		case CHARSEOF0:
 			currentToken.code = SEOF_T;

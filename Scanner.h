@@ -65,7 +65,7 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* : Define the number of tokens */
-#define NUM_TOKENS 13
+#define NUM_TOKENS 14
 
 /* : Define Token codes - Create your token classes */
 enum TOKENS {
@@ -81,7 +81,8 @@ enum TOKENS {
 	EOS_T,		/*  9: End of statement (semicolon) */
 	RTE_T,		/* 10: Run-time error token */
 	SEOF_T,		/* 11: Source end-of-file token */
-	CMT_T		/* 12: Comment token */
+	CMT_T,		/* 12: Comment token */
+	ASSI_T		/* 13: Assigns value token*/
 };
 
 /* : Define the list of keywords */
@@ -98,7 +99,8 @@ static ish_thread tokenStrTable[NUM_TOKENS] = {
 	"EOS_T",
 	"RTE_T",
 	"SEOF_T",
-	"CMT_T"
+	"CMT_T",
+	"ASSI_T"
 };
 
 /* TO_DO: Operators token attributes */
@@ -194,18 +196,18 @@ static ish_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 #define FSNR	1		/* accepting state with no retract */
 #define FSWR	2		/* accepting state with retract */
 
-/* TO_DO: Define list of acceptable states */
+/*  Define list of acceptable states */
 static ish_intg stateType[NUM_STATES] = {
-	NOFS, /* 00 */
-	NOFS, /* 01 */
-	FSNR, /* 02 (MID) - Methods */
-	FSWR, /* 03 (KEY) */
-	NOFS, /* 04 */
-	FSNR, /* 05 (SL) */
-	NOFS, /* 06 */
-	FSNR, /* 07 (COM) */
-	FSNR, /* 08 (Err1 - no retract) */
-	FSWR  /* 09 (Err2 - retract) */
+	NOFS, /* 00: Initial state, not a final state */
+	NOFS, /* 01: Intermediate state, not a final state */
+	FSNR, /* 02: Final state, no retract (MID) - Methods */
+	FSWR, /* 03: Final state, retract (KEY) - Keywords */
+	NOFS, /* 04: Intermediate state, not a final state */
+	FSNR, /* 05: Final state, no retract (SL) - Single-line comments */
+	NOFS, /* 06: Intermediate state, not a final state */
+	FSNR, /* 07: Final state, no retract (COM) - Comments */
+	FSNR, /* 08: Final state, no retract (Err1) - Error state, no retract */
+	FSWR  /* 09: Final state, retract (Err2) - Error state, retract */
 };
 
 /*
@@ -216,8 +218,8 @@ TO_DO: Adjust your functions'definitions
 
 /* Static (local) function  prototypes */
 ish_intg			startScanner(BufferPointer psc_buf);
-static ish_intg	nextClass(ish_cha c);					/* character class function */
-static ish_intg	nextState(ish_intg, ish_cha);		/* state machine function */
+static ish_intg		nextClass(ish_cha c);					/* character class function */
+static ish_intg		nextState(ish_intg, ish_cha);		/* state machine function */
 ish_void			printScannerData(ScannerData scData);
 Token				tokenizer(ish_void);
 
