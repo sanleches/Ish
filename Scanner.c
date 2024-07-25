@@ -181,16 +181,35 @@ Token tokenizer(ish_void) {
 			currentToken.code = RBR_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
-
-		case '<':
-			if (readerGetChar(sourceBuffer) + 1 == '-') {
-				currentToken.code = ASSI_T;
-				scData.scanHistogram[currentToken.code]++;
-			}
-			else {
-				continue;
-			}
-
+		case '+':
+			currentToken.code = AO_T;
+			currentToken.attribute.arithmeticOperator = OP_ADD;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+		case '-':
+			currentToken.code = AO_T;
+			currentToken.attribute.arithmeticOperator = OP_SUB;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+		case '*':
+			currentToken.code = AO_T;
+			currentToken.attribute.arithmeticOperator = OP_MUL;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+		case '/':
+			currentToken.code = AO_T;
+			currentToken.attribute.arithmeticOperator = OP_DIV;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+		case '%':
+			currentToken.code = AO_T;
+			currentToken.attribute.arithmeticOperator = OP_MOD;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+		case '=':
+			currentToken.code = EQ_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		/* Cases for END OF FILE */
 		case CHARSEOF0:
 			currentToken.code = SEOF_T;
@@ -313,6 +332,9 @@ ish_intg nextClass(ish_cha c) {
 	case CHRCOL4:
 		val = 4;
 		break;
+	case CHRCOL5:
+		val = 5;
+		break;
 	case CHRCOL6:
 		val = 6;
 		break;
@@ -385,6 +407,27 @@ Token funcIL(ish_thread lexeme) {
 	return currentToken;
 }
 
+Token funcFL(ish_thread lexeme) {
+	Token currentToken = { 0 };
+	ish_flop tflop;
+	char* p;
+	if (lexeme[0] != '\0' && strlen(lexeme) > NUM_LEN) {
+		currentToken = (*finalStateTable[ESNR])(lexeme);
+	}
+	else {
+		tflop = strtof(lexeme, &p);
+		if (tflop >= 0 && tflop <= SHRT_MAX) {
+			currentToken.code = FL_T;
+			scData.scanHistogram[currentToken.code]++;
+			currentToken.attribute.floatValue = (ish_flop)tflop;
+		}
+		else {
+			currentToken = (*finalStateTable[ESNR])(lexeme);
+		}
+	}
+	return currentToken;
+}
+
 
 /*
  ************************************************************
@@ -394,7 +437,7 @@ Token funcIL(ish_thread lexeme) {
  *		the current lexeme matches with KW from language.
  *	- Remember to respect the limit defined for lexemes (VID_LEN) and
  *	  set the lexeme to the corresponding attribute (vidLexeme).
- *    Remember to end each token with the \0.
+ *    Remember to end each token with the \0.s
  *  - Suggestion: Use "strncpy" function.
  ***********************************************************
  */
@@ -402,9 +445,24 @@ Token funcIL(ish_thread lexeme) {
 
 Token funcID(ish_thread lexeme) {
 	Token currentToken = { 0 };
-	currentToken.code = MNID_T;
+	size_t length = strlen(lexeme);
+	ish_cha lastch = lexeme[length - 1];
+	ish_intg isID = ISH_FALSE;
+	ish_intg kwindex = -1, j = 0;
+	for (j = 0; j < KWT_SIZE; j++)
+		if (!strcmp(lexeme, &keywordTable[j][0]))
+			kwindex = j;
+	if (kwindex != -1) {
+		currentToken.code = KW_T;
+		scData.scanHistogram[currentToken.code]++;
+		currentToken.attribute.codeType = kwindex;
+		return currentToken;
+	}
+	currentToken.code = ID_T;
+	scData.scanHistogram[currentToken.code]++;
 	strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
 	currentToken.attribute.idLexeme[VID_LEN] = CHARSEOF0;
+	
 	return currentToken;
 }
 
@@ -445,34 +503,6 @@ Token funcSL(ish_thread lexeme) {
 	}
 	currentToken.code = STR_T;
 	scData.scanHistogram[currentToken.code]++;
-	return currentToken;
-}
-
-
-/*
-************************************************************
- * This function checks if one specific lexeme is a keyword.
- * - Tip: Remember to use the keywordTable to check the keywords.
- ***********************************************************
- */
- /* TO_DO: Adjust the function for Keywords */
-
-Token funcKEY(ish_thread lexeme) {
-	Token currentToken = { 0 };
-	ish_intg kwindex = -1, j = 0;
-	ish_intg len = (ish_intg)strlen(lexeme);
-	//lexeme[len - 1] = '\0';
-	for (j = 0; j < KWT_SIZE; j++)
-		if (!strcmp(lexeme, &keywordTable[j][0]))
-			kwindex = j;
-	if (kwindex != -1) {
-		currentToken.code = KW_T;
-		scData.scanHistogram[currentToken.code]++;
-		currentToken.attribute.codeType = kwindex;
-	}
-	else {
-		currentToken = funcID(lexeme);
-	}
 	return currentToken;
 }
 
@@ -533,8 +563,8 @@ ish_void printToken(Token t) {
 	case SEOF_T:
 		printf("SEOF_T\t\t%d\t\n", t.attribute.seofType);
 		break;
-	case MNID_T:
-		printf("MNID_T\t\t%s\n", t.attribute.idLexeme);
+	case ID_T:
+		printf("ID_T\t\t%s\n", t.attribute.idLexeme);
 		break;
 	case STR_T:
 		printf("STR_T\t\t%d\t ", (ish_intg)t.attribute.codeType);
@@ -558,8 +588,20 @@ ish_void printToken(Token t) {
 	case CMT_T:
 		printf("CMT_T\n");
 		break;
+	case INL_T:
+		printf("INL_T\t\t%d\n", t.attribute.intValue);
+		break;
+	case FL_T:
+		printf("FL_T\t\t%f\n", t.attribute.floatValue);
+		break;
 	case EOS_T:
 		printf("EOS_T\n");
+		break;
+	case AO_T:
+		printf("AO_T\n");
+		break;
+	case EQ_T:
+		printf("EQ_T\n");
 		break;
 	default:
 		printf("Scanner error: invalid token code: %d\n", t.code);

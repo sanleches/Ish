@@ -1,0 +1,23 @@
+"dhuewihfiewuf"
+12.13
+## this is a single line comment
+# jfiewojff
+fe #
+(fewf)
+{wef}
+
+ewfew
+fewf
+
+Testing
+123
+
+funk
+flop
+thread
+
+v numi number = 5 + 2;
+v numi subnum = 5 - 2;
+v numi multnum = 5 * 2;
+v numi divnum = 4 / 2;
+v numi modnum = 5 % 2;

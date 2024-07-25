@@ -46,7 +46,7 @@
 #define COMPILERS_H_
 
 // Debug mode flag
-#define DEBUG 0
+#define DEBUG 1
 
 // Language name
 #define STR_LANGNAME    "Ish"

@@ -64,13 +64,13 @@
 
 #define RTE_CODE 1  /* Value for run-time error */
 
-/* : Define the number of tokens */
-#define NUM_TOKENS 14
+/* TO_DO: Define the number of tokens */
+#define NUM_TOKENS 16
 
-/* : Define Token codes - Create your token classes */
+/* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
 	ERR_T,		/*  0: Error token */
-	MNID_T,		/*  1: Method name identifier token (start: &) */
+	ID_T,		/*  1: identifier token  */
 	INL_T,		/*  2: Integer literal token */
 	STR_T,		/*  3: String literal token */
 	LPR_T,		/*  4: Left parenthesis token */
@@ -82,10 +82,12 @@ enum TOKENS {
 	RTE_T,		/* 10: Run-time error token */
 	SEOF_T,		/* 11: Source end-of-file token */
 	CMT_T,		/* 12: Comment token */
-	ASSI_T		/* 13: Assigns value token*/
+	FL_T,		/* 13: Float token */
+	AO_T,		/* 14: Arithmetic Operator Token */
+	EQ_T		/* 15: Equal Sign Token*/
 };
 
-/* : Define the list of keywords */
+/* TO_DO: Define the list of keywords */
 static ish_thread tokenStrTable[NUM_TOKENS] = {
 	"ERR_T",
 	"MNID_T",
@@ -100,11 +102,13 @@ static ish_thread tokenStrTable[NUM_TOKENS] = {
 	"RTE_T",
 	"SEOF_T",
 	"CMT_T",
-	"ASSI_T"
+	"FL_T",
+	"AO_T",
+	"EQ_T"
 };
 
 /* TO_DO: Operators token attributes */
-typedef enum ArithmeticOperators { OP_ADD, OP_SUB, OP_MUL, OP_DIV } AriOperator;
+typedef enum ArithmeticOperators { OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD } AriOperator;
 typedef enum RelationalOperators { OP_EQ, OP_NE, OP_GT, OP_LT } RelOperator;
 typedef enum LogicalOperators { OP_AND, OP_OR, OP_NOT } LogOperator;
 typedef enum SourceEndOfFile { SEOF_0, SEOF_255 } EofOperator;
@@ -157,38 +161,40 @@ typedef struct scannerData {
 
 /* TO_DO: Define lexeme FIXED classes */
 /* These constants will be used on nextClass */
-#define CHRCOL2 '_'
-#define CHRCOL3 '&'
-#define CHRCOL4 '\''
-#define CHRCOL6 '#'
+#define CHRCOL2 '#'
+#define CHRCOL3 '_'
+#define CHRCOL4 '"'
+#define CHRCOL5 '.'
+#define CHRCOL6 '\n'
 
-/* These constants will be used on VID / MID function */
-#define MNID_SUF '&'
-#define COMM_SYM '#'
 
 /* TO_DO: Error states and illegal state */
-#define ESNR	8		/* Error state with no retract */
-#define ESWR	9		/* Error state with retract */
-#define FS		10		/* Illegal state */
+#define ESNR	14		/* Error state with no retract */
+#define ESWR	15		/* Error state with retract */
+#define FS		16		/* Illegal state */
 
  /* TO_DO: State transition table definition */
-#define NUM_STATES		10
+#define NUM_STATES		16
 #define CHAR_CLASSES	8
 
 /* TO_DO: Transition table - type of states defined in separate table */
 static ish_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
-/*    [A-z],[0-9],    _,    &,   \', SEOF,    #, other
-	   L(0), D(1), U(2), M(3), Q(4), E(5), C(6),  O(7) */
-	{     1, ESNR, ESNR, ESNR,    4, ESWR,	  6, ESNR},	// S0: NOAS
-	{     1,    1,    1,    2,	  3,    3,   3,    3},	// S1: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S2: ASNR (MVID)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S3: ASWR (KEY)
-	{     4,    4,    4,    4,    5, ESWR,	  4,    4},	// S4: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S5: ASNR (SL)
-	{     6,    6,    6,    6,    6, ESWR,	  7,    6},	// S6: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S7: ASNR (COM)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S8: ASNR (ES)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS}  // S9: ASWR (ER)
+/*    [A-z],[0-9],    #,    _,    ",    .,   \n,    0
+	   L(0), D(1), RTS2    U4,   Q5,   P6,   N7,   O8 */
+	{     6,    8,    1, ESNR,   12,   ESNR, ESNR, ESNR},		// S0: NOAS
+	{     4,    4,    2,    4,    4,      4,    4,    4},		// S1: NOAS
+	{     2,    2,    2,    2,    2,	  2,    3,    2},		// S2: NOAS
+	{    FS,   FS,   FS,   FS,   FS,	 FS,   FS,   FS},		// S3: ASNR (SLC)
+	{     4,    4,    5,    4,    4,	  4,    4,    4},		// S4: NOAS
+	{    FS,   FS,   FS,   FS,   FS,	 FS,   FS,   FS},		// S5: ASNR (MLC)
+	{     6,    6,    7,    6,    7,	  7,    7,    7},		// S6: NOAS
+	{    FS,   FS,   FS,   FS,   FS,	 FS,   FS,   FS},		// S7: ASWR (VID|MID|KEY)
+	{     9,    8,    9,    9,    9,	 10,    9,    9},		// S8: NOAS
+	{    FS,   FS,   FS,   FS,   FS,	 FS,   FS,   FS},		// S9: ASWR (IL)
+	{    11,   10,   11,   11,   11,	 11,   11,   11},		// S10: NOAS
+	{    FS,   FS,   FS,   FS,   FS,	 FS,   FS,   FS},		// S11: ASWR
+	{    12,   12,   12,   12,   13,	 12,   12,   12},		// S12: NOAS
+	{    FS,   FS,   FS,   FS,   FS,	 FS,   FS,   FS}		// S13: ASNR (SL)
 };
 
 /* Define accepting states types */
@@ -196,18 +202,22 @@ static ish_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 #define FSNR	1		/* accepting state with no retract */
 #define FSWR	2		/* accepting state with retract */
 
-/*  Define list of acceptable states */
+/* TO_DO: Define list of acceptable states */
 static ish_intg stateType[NUM_STATES] = {
-	NOFS, /* 00: Initial state, not a final state */
-	NOFS, /* 01: Intermediate state, not a final state */
-	FSNR, /* 02: Final state, no retract (MID) - Methods */
-	FSWR, /* 03: Final state, retract (KEY) - Keywords */
-	NOFS, /* 04: Intermediate state, not a final state */
-	FSNR, /* 05: Final state, no retract (SL) - Single-line comments */
-	NOFS, /* 06: Intermediate state, not a final state */
-	FSNR, /* 07: Final state, no retract (COM) - Comments */
-	FSNR, /* 08: Final state, no retract (Err1) - Error state, no retract */
-	FSWR  /* 09: Final state, retract (Err2) - Error state, retract */
+	NOFS, /* 00 */
+	NOFS, /* 01 */
+	NOFS, /* 02 */
+	FSNR, /* 03 (SLC) */
+	NOFS, /* 04 */
+	FSNR, /* 05 (MLC) */
+	NOFS, /* 06 */
+	FSWR, /* 07 (MID|VID|KEY) */
+	NOFS, /* 08 */
+	FSWR, /* 09 (IL) */
+	NOFS, /* 10 */
+	FSWR, /* 11 (FL) */
+	NOFS, /* 12 */
+	FSNR  /* 13 (SL) */
 };
 
 /*
@@ -218,8 +228,8 @@ TO_DO: Adjust your functions'definitions
 
 /* Static (local) function  prototypes */
 ish_intg			startScanner(BufferPointer psc_buf);
-static ish_intg		nextClass(ish_cha c);					/* character class function */
-static ish_intg		nextState(ish_intg, ish_cha);		/* state machine function */
+static ish_intg	nextClass(ish_cha c);					/* character class function */
+static ish_intg	nextState(ish_intg, ish_cha);		/* state machine function */
 ish_void			printScannerData(ScannerData scData);
 Token				tokenizer(ish_void);
 
@@ -235,9 +245,9 @@ typedef Token(*PTR_ACCFUN)(ish_thread lexeme);
 /* Declare accepting states functions */
 Token funcSL	(ish_thread lexeme);
 Token funcIL	(ish_thread lexeme);
+Token funcFL	(ish_thread lexeme);
 Token funcID	(ish_thread lexeme);
 Token funcCMT   (ish_thread lexeme);
-Token funcKEY	(ish_thread lexeme);
 Token funcErr	(ish_thread lexeme);
 
 /* 
@@ -249,14 +259,20 @@ Token funcErr	(ish_thread lexeme);
 static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	NULL,		/* -    [00] */
 	NULL,		/* -    [01] */
-	funcID,		/* MNID	[02] */
-	funcKEY,	/* KEY  [03] */
-	NULL,		/* -    [04] */
-	funcSL,		/* SL   [05] */
+	NULL,		/* -    [02] */
+	funcCMT,	/* SLC	[03] */
+	NULL,		/*      [04] */
+	funcCMT,	/* -    [05] */
 	NULL,		/* -    [06] */
-	funcCMT,	/* COM  [07] */
-	funcErr,	/* ERR1 [06] */
-	funcErr		/* ERR2 [07] */
+	funcID,		/* SL   [07] */
+	NULL,		/* -    [08] */
+	funcIL	,	/* IL   [09] */
+	NULL,		/* -    [10]*/
+	funcFL,		/* FL   [11] */
+	NULL,		/* -    [12]*/
+	funcSL,		/* SSL  [13] */
+	funcErr,	/* ERR  [14] */
+	funcErr 	/* ERR  [15] */
 };
 
 /*
@@ -266,20 +282,25 @@ Language keywords
 */
 
 /* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 10
+#define KWT_SIZE 15
 
 /* TO_DO: Define the list of keywords */
 static ish_thread keywordTable[KWT_SIZE] = {
-	"data",		/* KW00 */
-	"code",		/* KW01 */
-	"int",		/* KW02 */
-	"real",		/* KW03 */
-	"string",	/* KW04 */
-	"if",		/* KW05 */
-	"then",		/* KW06 */
-	"else",		/* KW07 */
-	"while",	/* KW08 */
-	"do"		/* KW09 */
+	"if",		/* KW01 */
+	"else",		/* KW02 */
+	"while",	/* KW03 */
+	"for",	    /* KW04 */
+	"return",	/* KW05 */
+	"funk",		/* KW06 */
+	"v",		/* KW07 (var) */
+	"numi",		/* KW08 (integer)*/
+	"flop",     /* KW09 (float)*/
+	"thread",	/* KW10 (string) */
+	"print",	/* KW11 */
+	"input",    /* KW12 */
+	"longint",  /* KW13 (signed integer)*/
+	"TRUE",     /* KW14 */
+	"FALSE"     /* KW15 */
 };
 
 /* NEW SECTION: About indentation */
@@ -294,7 +315,7 @@ static ish_thread keywordTable[KWT_SIZE] = {
 typedef struct languageAttributes {
 	ish_cha indentationCharType;
 	ish_thread indentationCurrentPos;
-	/* : Include any extra attribute to be used in your scanner (OPTIONAL and FREE) */
+	/* TO_DO: Include any extra attribute to be used in your scanner (OPTIONAL and FREE) */
 } LanguageAttributes;
 
 /* Number of errors */
