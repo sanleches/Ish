@@ -95,12 +95,31 @@ BufferPointer readerCreate(ish_intg size, ish_intg increment, ish_intg mode) {
 		return NULL;
 	}
 
-	readerPointer->size = size;
-	readerPointer->increment = increment;
-	readerPointer->mode = mode;
-	readerPointer->flags = FLAG_EMP;
+	/*Initialize the histogram*/
+	for (int i = 0; i < NCHAR; i++)
+		readerPointer->histogram[i] = 0;
 
-	readerPointer->content[0] = READER_TERMINATOR;
+	if (size != 0)
+		readerPointer->size = size;
+	else
+		readerPointer->size = READER_DEFAULT_SIZE;
+
+	if (increment != 0)
+		readerPointer->increment = increment;
+	else
+		readerPointer->increment = READER_DEFAULT_INCREMENT;
+
+	if (mode == MODE_ADDIT || mode == MODE_FIXED || mode == MODE_MULTI)
+		readerPointer->mode = increment;
+	else
+		readerPointer->mode = MODE_FIXED;
+
+	//readerPointer->mode = mode;
+	readerPointer->flags |= FLAG_EMP;
+
+	if (readerPointer->content)
+		readerPointer->content[0] = READER_TERMINATOR;
+
 	readerPointer->position.wrte = 0;
 	readerPointer->position.mark = 0;
 	readerPointer->position.read = 0;
@@ -125,24 +144,68 @@ BufferPointer readerCreate(ish_intg size, ish_intg increment, ish_intg mode) {
 */
 
 BufferPointer readerAddChar(BufferPointer const readerPointer, ish_cha ch) {
+	// Check if the readerPointer is valid and not full
 	if (!readerPointer || readerIsFull(readerPointer)) {
-		return NULL; // Defensive programming
+		return READER_ERROR; // Defensive programming: invalid reader or full
 	}
 
-	if (readerPointer->position.wrte * sizeof(ish_cha) >= readerPointer->size) {
-		ish_intg newSize = readerPointer->size + readerPointer->increment;
+	// Start with setting the REL bit, as reallocation may occur
+	readerPointer->flags |= FLAG_REL;
+
+	// Check if the current position exceeds the allocated size
+	if (readerPointer->position.wrte * sizeof(ish_cha) >= readerPointer->size - 5) {
+		// Determine the new size based on the mode
+		ish_intg newSize;
+		if (readerPointer->mode == MODE_FIXED) {
+			// Fixed mode, cannot increase the size
+			readerPointer->flags |= FLAG_FUL; // Set the full flag
+			return NULL; // No space to add new char
+		}
+		else if (readerPointer->mode == MODE_ADDIT) {
+			// Additive mode, increase size linearly
+			newSize = readerPointer->size + readerPointer->increment;
+		}
+		else if (readerPointer->mode == MODE_MULTI) {
+			// Multiplicative mode, increase size exponentially
+			newSize = readerPointer->size * readerPointer->increment;
+		}
+		else {
+			return  READER_ERROR; // Unknown mode, defensive programming
+		}
+
+		// Check if the new size is valid and within limits
+		if (newSize <= readerPointer->size || newSize >= READER_MAX_SIZE) {
+			return READER_ERROR; // Invalid size or exceeds max limit
+		}
+
+		// Reallocate memory
 		ish_thread tempReader = (ish_thread)realloc(readerPointer->content, newSize);
 		if (!tempReader) {
-			return NULL; // Defensive programming
+			return READER_ERROR; // Memory allocation failed
 		}
+
+		// Check if the memory address has changed (set REL bit if true)
+		if (tempReader != readerPointer->content) {
+			readerPointer->flags |= FLAG_REL; // Set the relative bit
+		}
+
+		// Update reader attributes
 		readerPointer->content = tempReader;
 		readerPointer->size = newSize;
 	}
 
+	// Add the character to the reader's content and update the write position
 	readerPointer->content[readerPointer->position.wrte++] = ch;
 	readerPointer->flags &= ~FLAG_EMP; // Clear the empty flag
-	return readerPointer;
+
+	// Check if the reader is full after adding the character
+	if (readerPointer->position.wrte * sizeof(ish_cha) >= readerPointer->size) {
+		readerPointer->flags |= FLAG_FUL; // Set the full flag
+	}
+
+	return readerPointer; // Return the updated reader pointer
 }
+
 
 /*
 ***********************************************************
@@ -605,7 +668,7 @@ ish_intg readerGetMode(BufferPointer const readerPointer) {
 */
 ish_byte readerGetFlags(BufferPointer const readerPointer) {
 	if (!readerPointer) {
-		return 0; // Defensive programming
+		return READER_ERROR; // Defensive programming
 	}
 
 	return readerPointer->flags;
