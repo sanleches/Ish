@@ -39,7 +39,6 @@
 ************************************************************
 */
 
-
 #ifndef COMPILERS_H_
 #include "Compilers.h"
 #endif
@@ -313,7 +312,7 @@ ish_void outputVariableList() {
     printf("%s%s\n", STR_LANGNAME, ": Output variable list parsed");
 }
 
-/* Function to print BNF data DONE*/
+/* Function to print BNF data */
 ish_void printBNFData(ParserData psData) {
     ish_intg i;
     printf("\nBNF Statements Histogram:\n");
