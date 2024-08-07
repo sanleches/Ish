@@ -110,7 +110,7 @@ BufferPointer readerCreate(ish_intg size, ish_intg increment, ish_intg mode) {
 		readerPointer->increment = READER_DEFAULT_INCREMENT;
 
 	if (mode == MODE_ADDIT || mode == MODE_FIXED || mode == MODE_MULTI)
-		readerPointer->mode = increment;
+		readerPointer->mode = mode;
 	else
 		readerPointer->mode = MODE_FIXED;
 
@@ -153,7 +153,7 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, ish_cha ch) {
 	readerPointer->flags |= FLAG_REL;
 
 	// Check if the current position exceeds the allocated size
-	if (readerPointer->position.wrte * sizeof(ish_cha) >= readerPointer->size - 5) {
+	if (readerPointer->position.wrte * sizeof(ish_cha) >= readerPointer->size -1) {
 		// Determine the new size based on the mode
 		ish_intg newSize;
 		if (readerPointer->mode == MODE_FIXED) {

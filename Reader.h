@@ -81,7 +81,7 @@ enum READER_MODE {
 #define READER_MAX_SIZE	INT_MAX-1	/* maximum capacity */ 
 
 #define READER_DEFAULT_SIZE			250		/* default initial buffer reader capacity */
-#define READER_DEFAULT_INCREMENT	10		/* default increment factor */ //THIS IS THE ISSUE
+#define READER_DEFAULT_INCREMENT	10		/* default increment factor */
 
 /* Add your bit-masks constant definitions here - Defined for BOA */
 /* BITS                                (7654.3210) */
@@ -112,7 +112,7 @@ typedef struct bufferReader {
 	ish_thread	content;			/* pointer to the beginning of character array (character buffer) */
 	ish_intg		size;				/* current dynamic memory size (in bytes) allocated to character buffer */
 	ish_intg		increment;			/* character array increment factor */
-	ish_intg		mode;				/* operational mode indicator */ //INTG???
+	ish_intg		mode;				/* operational mode indicator */
 	ish_byte		flags;				/* contains character array reallocation flag and end-of-buffer flag */
 	Position		position;				/* Offset / position field */
 	ish_intg		histogram[NCHAR];	/* Statistics of chars */
