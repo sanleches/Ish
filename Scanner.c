@@ -630,5 +630,5 @@ ish_void printScannerData(ScannerData scData) {
 }
 
 /*
-TO_DO: (If necessary): HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS (IF ANY).
+(If necessary): HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS (IF ANY).
 */
