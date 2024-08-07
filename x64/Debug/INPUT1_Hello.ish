@@ -1,0 +1,7 @@
+## Ish Example 2: and should not generate any error
+
+funk sayHello(){
+   print('Hello, world!')
+}
+
+sayHello()

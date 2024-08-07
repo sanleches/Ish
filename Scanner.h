@@ -65,47 +65,59 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 16
+#define NUM_TOKENS 21
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
-	ERR_T,		/*  0: Error token */
-	ID_T,		/*  1: identifier token  */
-	INL_T,		/*  2: Integer literal token */
-	STR_T,		/*  3: String literal token */
-	LPR_T,		/*  4: Left parenthesis token */
-	RPR_T,		/*  5: Right parenthesis token */
-	LBR_T,		/*  6: Left brace token */
-	RBR_T,		/*  7: Right brace token */
-	KW_T,		/*  8: Keyword token */
-	EOS_T,		/*  9: End of statement (semicolon) */
-	RTE_T,		/* 10: Run-time error token */
-	SEOF_T,		/* 11: Source end-of-file token */
-	CMT_T,		/* 12: Comment token */
-	FL_T,		/* 13: Float token */
-	AO_T,		/* 14: Arithmetic Operator Token */
-	EQ_T		/* 15: Equal Sign Token*/
+	ERR_T,        /*  0: Error token */
+	ID_T,         /*  1: Identifier token */
+	INL_T,        /*  2: Integer literal token */
+	STR_T,        /*  3: String literal token */
+	LPR_T,        /*  4: Left parenthesis token */
+	RPR_T,        /*  5: Right parenthesis token */
+	LBR_T,        /*  6: Left brace token */
+	RBR_T,        /*  7: Right brace token */
+	KW_T,         /*  8: Keyword token */
+	EOS_T,        /*  9: End of statement (semicolon) */
+	RTE_T,        /* 10: Run-time error token */
+	SEOF_T,       /* 11: Source end-of-file token */
+	CMT_T,        /* 12: Comment token */
+	FL_T,         /* 13: Float token */
+	AO_T,         /* 14: Arithmetic Operator Token */
+	EQ_T,         /* 15: Equal Sign Token */
+	FUNC_T,       /* 16: Function keyword (e.g., `funk`) */
+	VAR_T,        /* 17: Variable keyword (e.g., `v`) */
+	THREAD_T,     /* 18: Thread keyword (e.g., `ish_thread`) */
+	TYPE_T,       /* 19: Type keyword (e.g., `ish_intg`, `ish_flop`) */
+	CALL_T        /* 20: Function call token */
 };
 
-/* TO_DO: Define the list of keywords */
+
+/* Define the list of tokens for the .ish language */
 static ish_thread tokenStrTable[NUM_TOKENS] = {
-	"ERR_T",
-	"MNID_T",
-	"INL_T",
-	"STR_T",
-	"LPR_T",
-	"RPR_T",
-	"LBR_T",
-	"RBR_T",
-	"KW_T",
-	"EOS_T",
-	"RTE_T",
-	"SEOF_T",
-	"CMT_T",
-	"FL_T",
-	"AO_T",
-	"EQ_T"
+	"ERR_T",        /*  0: Error token */
+	"ID_T",         /*  1: Identifier token */
+	"INL_T",        /*  2: Integer literal token */
+	"STR_T",        /*  3: String literal token */
+	"LPR_T",        /*  4: Left parenthesis token */
+	"RPR_T",        /*  5: Right parenthesis token */
+	"LBR_T",        /*  6: Left brace token */
+	"RBR_T",        /*  7: Right brace token */
+	"KW_T",         /*  8: Keyword token */
+	"EOS_T",        /*  9: End of statement (semicolon) */
+	"RTE_T",        /* 10: Run-time error token */
+	"SEOF_T",       /* 11: Source end-of-file token */
+	"CMT_T",        /* 12: Comment token */
+	"FL_T",         /* 13: Float token */
+	"AO_T",         /* 14: Arithmetic Operator Token */
+	"EQ_T",         /* 15: Equal Sign Token */
+	"FUNC_T",       /* 16: Function keyword (e.g., `funk`) */
+	"VAR_T",        /* 17: Variable keyword (e.g., `v`) */
+	"THREAD_T",     /* 18: Thread keyword (e.g., `ish_thread`) */
+	"TYPE_T",       /* 19: Type keyword (e.g., `ish_intg`, `ish_flop`) */
+	"CALL_T"        /* 20: Function call token */
 };
+
 
 /* TO_DO: Operators token attributes */
 typedef enum ArithmeticOperators { OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD } AriOperator;
@@ -286,19 +298,19 @@ Language keywords
 
 /* TO_DO: Define the list of keywords */
 static ish_thread keywordTable[KWT_SIZE] = {
-	"if",		/* KW01 */
-	"else",		/* KW02 */
-	"while",	/* KW03 */
-	"for",	    /* KW04 */
-	"return",	/* KW05 */
-	"funk",		/* KW06 */
-	"v",		/* KW07 (var) */
-	"numi",		/* KW08 (integer)*/
-	"flop",     /* KW09 (float)*/
-	"thread",	/* KW10 (string) */
-	"print",	/* KW11 */
+	"if",       /* KW01 */
+	"else",     /* KW02 */
+	"while",    /* KW03 */
+	"for",      /* KW04 */
+	"return",   /* KW05 */
+	"funk",     /* KW06 */
+	"v",        /* KW07 (var) */
+	"ish_intg", /* KW08 (integer) */
+	"ish_flop", /* KW09 (float) */
+	"ish_thread", /* KW10 (string) */
+	"print",    /* KW11 */
 	"input",    /* KW12 */
-	"longint",  /* KW13 (signed integer)*/
+	"longint",  /* KW13 (signed integer) */
 	"TRUE",     /* KW14 */
 	"FALSE"     /* KW15 */
 };

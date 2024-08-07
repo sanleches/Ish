@@ -1,2 +1,13 @@
-﻿  Parser.c
+﻿  MainParser.c
+C:\Users\Santiago\source\repos\Ish\Parser.h(68,46): warning C4047: 'initializing': 'ish_thread' differs in levels of indirection from 'char'
+  MainScanner.c
+  Parser.c
+C:\Users\Santiago\source\repos\Ish\Parser.h(68,46): warning C4047: 'initializing': 'ish_thread' differs in levels of indirection from 'char'
+C:\Users\Santiago\source\repos\Ish\Parser.c(179,56): warning C4047: 'function': 'const char *' differs in levels of indirection from 'int'
+C:\Users\Santiago\source\repos\Ish\Parser.c(179,56): warning C4024: 'strncmp': different types for formal and actual parameter 2
+C:\Users\Santiago\source\repos\Ish\Parser.c(211,31): warning C4047: '!=': 'ish_intg' differs in levels of indirection from 'ish_thread'
+C:\Users\Santiago\source\repos\Ish\Parser.c(306,56): warning C4047: 'function': 'const char *' differs in levels of indirection from 'int'
+C:\Users\Santiago\source\repos\Ish\Parser.c(306,56): warning C4024: 'strncmp': different types for formal and actual parameter 2
+  Scanner.c
+  Generating Code...
   Ish.vcxproj -> C:\Users\Santiago\source\repos\Ish\x64\Debug\Ish.exe

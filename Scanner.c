@@ -127,40 +127,27 @@ ish_intg startScanner(BufferPointer psc_buf) {
 
 Token tokenizer(ish_void) {
 
-	/* TO_DO: Follow the standard and adjust datatypes */
+	Token currentToken = { 0 }; // Initialize token structure
+	ish_cha c;                  // Input symbol
+	ish_intg state = 0;         // Initial state of FSM
+	ish_intg lexStart;         // Start offset of lexeme in buffer
+	ish_intg lexEnd;           // End offset of lexeme in buffer
+	ish_intg lexLength;        // Length of the token
+	ish_intg i;                // Counter
 
-	Token currentToken = { 0 }; /* token to return after pattern recognition. Set all structure members to 0 */
-	ish_cha c;	/* input symbol */
-	ish_intg state = 0;		/* initial state of the FSM */
-	ish_intg lexStart;		/* start offset of a lexeme in the input char buffer (array) */
-	ish_intg lexEnd;		/* end offset of a lexeme in the input char buffer (array)*/
-
-	ish_intg lexLength;		/* token length */
-	ish_intg i;				/* counter */
-	///ish_cha newc;			// new char
-
-	while (1) { /* endless loop broken by token returns it will generate a warning */
+	while (1) { // Endless loop to generate tokens
 		c = readerGetChar(sourceBuffer);
 
-		/* ------------------------------------------------------------------------
-			Part 1: Implementation of token driven scanner.
-			Every token is possessed by its own dedicated code
-			-----------------------------------------------------------------------
-		*/
-
-		/* TO_DO: All patterns that do not require accepting functions */
 		switch (c) {
-
-		/* Cases for spaces */
 		case ' ':
 		case '\t':
 		case '\f':
+			// Ignore spaces and tabs
 			break;
 		case '\n':
 			line++;
 			break;
 
-		/* Cases for symbols */
 		case ';':
 			currentToken.code = EOS_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -210,7 +197,7 @@ Token tokenizer(ish_void) {
 			currentToken.code = EQ_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
-		/* Cases for END OF FILE */
+
 		case CHARSEOF0:
 			currentToken.code = SEOF_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -222,45 +209,50 @@ Token tokenizer(ish_void) {
 			currentToken.attribute.seofType = SEOF_255;
 			return currentToken;
 
-		/* ------------------------------------------------------------------------
-			Part 2: Implementation of Finite State Machine (DFA) or Transition Table driven Scanner
-			Note: Part 2 must follow Part 1 to catch the illegal symbols
-			-----------------------------------------------------------------------
-		*/
-
-		/* TO_DO: Adjust / check the logic for your language */
-
-		default: // general case
-			state = nextState(state, c);
-			lexStart = readerGetPosRead(sourceBuffer) - 1;
-			readerSetMark(sourceBuffer, lexStart);
-			int pos = 0;
-			while (stateType[state] == NOFS) {
-				c = readerGetChar(sourceBuffer);
-				state = nextState(state, c);
-				pos++;
-			}
-			if (stateType[state] == FSWR)
-				readerRetract(sourceBuffer);
-			lexEnd = readerGetPosRead(sourceBuffer);
-			lexLength = lexEnd - lexStart;
-			lexemeBuffer = readerCreate((ish_intg)lexLength + 2, 0, MODE_FIXED);
-			if (!lexemeBuffer) {
-				fprintf(stderr, "Scanner error: Can not create buffer\n");
-				exit(1);
-			}
-			readerRestore(sourceBuffer);
-			for (i = 0; i < lexLength; i++)
-				readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));
-			readerAddChar(lexemeBuffer, READER_TERMINATOR);
-			currentToken = (*finalStateTable[state])(readerGetContent(lexemeBuffer, 0));
-			readerRestore(lexemeBuffer);
+		default:
+			// Handle unexpected characters
+			fprintf(stderr, "Unexpected character '%c' encountered. Line: %d\n", c, line);
+			currentToken.code = ERR_T; // Set to error token
+			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
-		} // switch
+		}
 
-	} //while
+		// Part 2: Handle FSM for more complex tokens
+		state = nextState(state, c);
+		lexStart = readerGetPosRead(sourceBuffer) - 1;
+		readerSetMark(sourceBuffer, lexStart);
+		int pos = 0;
 
-} // tokenizer
+		while (stateType[state] == NOFS) {
+			c = readerGetChar(sourceBuffer);
+			state = nextState(state, c);
+			pos++;
+		}
+
+		if (stateType[state] == FSWR)
+			readerRetract(sourceBuffer);
+
+		lexEnd = readerGetPosRead(sourceBuffer);
+		lexLength = lexEnd - lexStart;
+		lexemeBuffer = readerCreate((ish_intg)lexLength + 2, 0, MODE_FIXED);
+		if (!lexemeBuffer) {
+			fprintf(stderr, "Scanner error: Cannot create buffer\n");
+			exit(1);
+		}
+		readerRestore(sourceBuffer);
+		for (i = 0; i < lexLength; i++)
+			readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));
+		readerAddChar(lexemeBuffer, READER_TERMINATOR);
+		currentToken = (*finalStateTable[state])(readerGetContent(lexemeBuffer, 0));
+		readerRestore(lexemeBuffer);
+
+		// Debugging information for token code
+		if (currentToken.code == ERR_T) {
+			fprintf(stderr, "Invalid token code: %d. Line: %d\n", currentToken.code, line);
+		}
+		return currentToken;
+	}
+}
 
 
 /*
@@ -287,7 +279,7 @@ Token tokenizer(ish_void) {
 	or #undef DEBUG is used - see the top of the file.
  ***********************************************************
  */
- /* TO_DO: Just change the datatypes */
+ /* Just change the datatypes */
 
 ish_intg nextState(ish_intg state, ish_cha c) {
 	ish_intg col;
@@ -323,7 +315,7 @@ ish_intg nextState(ish_intg state, ish_cha c) {
 ish_intg nextClass(ish_cha c) {
 	ish_intg val = -1;
 	switch (c) {
-	case CHRCOL2:
+	case CHRCOL2://Comment #
 		val = 2;
 		break;
 	case CHRCOL3:

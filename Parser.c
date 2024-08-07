@@ -52,10 +52,12 @@ ParserData psData; /* BNF statistics */
 
 /* Function to start the parser */
 ish_void startParser() {
-    ish_intg i;
+    /* Initialize Parser data */
+    ish_intg i = 0;
     for (i = 0; i < NUM_BNF_RULES; i++) {
         psData.parsHistogram[i] = 0;
     }
+    /* Proceed parser */
     lookahead = tokenizer();
     if (lookahead.code != SEOF_T) {
         program();
@@ -67,30 +69,39 @@ ish_void startParser() {
 /* Function to match tokens */
 ish_void matchToken(ish_intg tokenCode, ish_intg tokenAttribute) {
     ish_intg matchFlag = 1;
+
+    // Check if the current token matches the expected token
     switch (lookahead.code) {
     case KW_T:
-        if (lookahead.attribute.codeType != tokenAttribute)
-            matchFlag = 0;
+        if (lookahead.attribute.codeType != tokenAttribute) {
+            matchFlag = 0;  // Token type does not match
+        }
         break;
     default:
-        if (lookahead.code != tokenCode)
-            matchFlag = 0;
+        if (lookahead.code != tokenCode) {
+            matchFlag = 0;  // Token code does not match
+        }
         break;
     }
-    if (matchFlag && lookahead.code == SEOF_T)
-        return;
-    if (matchFlag) {
-        lookahead = tokenizer();
-        if (lookahead.code == ERR_T) {
-            printError();
+
+    // If there's a match or if it's the end of the file
+    if (matchFlag || lookahead.code == SEOF_T) {
+        // If the match flag is set, move to the next token
+        if (matchFlag) {
             lookahead = tokenizer();
-            syntaxErrorNumber++;
+            if (lookahead.code == ERR_T) {
+                printError();
+                lookahead = tokenizer();  // Move to the next token after an error
+                syntaxErrorNumber++;
+            }
         }
     }
     else {
+        // If there was no match, handle synchronization errors
         syncErrorHandler(tokenCode);
     }
 }
+
 
 /* Function to handle synchronization errors */
 ish_void syncErrorHandler(ish_intg syncTokenCode) {
@@ -148,11 +159,12 @@ ish_void printError() {
     }
 }
 
-/* Function for the program non-terminal */
 ish_void program() {
+    /* Update program statistics */
     psData.parsHistogram[BNF_program]++;
+    /* Program code */
     switch (lookahead.code) {
-    case CMT_T:
+    case CHRCOL2:
         comment();
         break;
     case ID_T:
@@ -164,23 +176,43 @@ ish_void program() {
             matchToken(RBR_T, NO_ATTR);
             break;
         }
+        else if (strncmp(lookahead.attribute.idLexeme, FUNC_T, 5) == 0) {
+            functionDefinition();
+            break;
+        }
         else {
             printError();
         }
         break;
     case SEOF_T:
+        ; // Empty
         break;
     default:
         printError();
-        break;
     }
     printf("%s%s\n", STR_LANGNAME, ": Program parsed");
 }
 
+
 /* Function for the comment non-terminal */
+
 ish_void comment() {
     psData.parsHistogram[BNF_comment]++;
-    matchToken(CMT_T, NO_ATTR);
+    /* Handle multi-line comments */
+    if (lookahead.code == CHRCOL2) {
+        lookahead = tokenizer();
+        while (lookahead.code != CHRCOL2 && lookahead.code != SEOF_T) {
+            lookahead = tokenizer();
+        }
+        matchToken(CHRCOL2, NO_ATTR);
+    }
+    else {
+        /* Handle single-line comments */
+        while (lookahead.code != NEWLINE_CHARACTER && lookahead.code != SEOF_T) {
+            lookahead = tokenizer();
+        }
+        matchToken(CMT_T, NO_ATTR);
+    }
     printf("%s%s\n", STR_LANGNAME, ": Comment parsed");
 }
 
@@ -263,29 +295,24 @@ ish_void statement() {
     switch (lookahead.code) {
     case KW_T:
         switch (lookahead.attribute.codeType) {
-        case KW_code:
-            codeSession();
-            break;
-        case KW_data:
-            dataSession();
-            break;
         default:
             printError();
-            break;
         }
         break;
     case ID_T:
         if (strncmp(lookahead.attribute.idLexeme, LANG_WRTE, 6) == 0) {
             outputStatement();
-            break;
+        }
+        else if (strncmp(lookahead.attribute.idLexeme, FUNC_T, 5) == 0) {
+            functionCall();
         }
         break;
     default:
         printError();
-        break;
     }
     printf("%s%s\n", STR_LANGNAME, ": Statement parsed");
 }
+
 
 /* Function for the output statement non-terminal */
 ish_void outputStatement() {
@@ -319,4 +346,26 @@ ish_void printBNFData(ParserData psData) {
     for (i = 0; i < NUM_BNF_RULES; i++) {
         printf("BNF[%02d] = %2d\n", i, psData.parsHistogram[i]);
     }
+}
+
+
+
+ish_void functionDefinition() {
+    psData.parsHistogram[BNF_functionDefinition]++;
+    matchToken(ID_T, NO_ATTR);  // Match the function name
+    matchToken(LPR_T, NO_ATTR); // Match opening parenthesis
+    matchToken(RPR_T, NO_ATTR); // Match closing parenthesis
+    matchToken(LBR_T, NO_ATTR); // Match opening curly brace
+    statements(); // Parse function body
+    matchToken(RBR_T, NO_ATTR); // Match closing curly brace
+    printf("%s%s\n", STR_LANGNAME, ": Function definition parsed");
+}
+
+ish_void functionCall() {
+    psData.parsHistogram[BNF_functionCall]++;
+    matchToken(ID_T, NO_ATTR);  // Match function call name
+    matchToken(LPR_T, NO_ATTR); // Match opening parenthesis
+    matchToken(RPR_T, NO_ATTR); // Match closing parenthesis
+    matchToken(EOS_T, NO_ATTR); // Match end of statement
+    printf("%s%s\n", STR_LANGNAME, ": Function call parsed");
 }

@@ -1,11 +1,7 @@
-main& {
-    data {
-        v x = 10;
-        v y = 20;
-        v result = 0;
-    }
-    code {
-        result = x + y;
-        print&("The result is: ", result);
-    }
-}
+## this is a single line comment
+# Multiple line
+comment#
+
+v ish_intg number = 5 + 2;
+v ish_intg subnum = 5 - 2;
+v ish_flop = 0.999;

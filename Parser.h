@@ -61,10 +61,11 @@
 /* Global vars */
 static Token			lookahead;
 extern BufferPointer	stringLiteralTable;
-extern ish_intg		line;
+extern ish_intg			line;
 extern Token			tokenizer(ish_void);
 extern ish_thread		keywordTable[KWT_SIZE];
-static ish_intg		syntaxErrorNumber = 0;
+static ish_intg			syntaxErrorNumber = 0;
+static ish_thread		NEWLINE_CHARACTER = (char)10;
 
 #define LANG_WRTE		"print&"
 #define LANG_READ		"input&"
@@ -128,7 +129,9 @@ enum BNF_RULES {
 	BNF_program,									/*  8 */
 	BNF_statement,									/*  9 */
 	BNF_statements,									/* 10 */
-	BNF_statementsPrime								/* 11 */
+	BNF_statementsPrime,							/* 11 */
+	BNF_functionDefinition,							/* 12 */ //new for function ddefinitions
+	BNF_functionCall								/* 13 */ //new for calls
 };
 
 
@@ -148,7 +151,7 @@ static ish_thread BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_statementsPrime"
 };
 
-/* TO_DO: Place ALL non-terminal function declarations */
+/* Place ALL non-terminal function declarations */
 ish_void codeSession();
 ish_void comment();
 ish_void dataSession();
@@ -160,5 +163,8 @@ ish_void program();
 ish_void statement();
 ish_void statements();
 ish_void statementsPrime();
+/* Function declarations for new constructs */
+ish_void functionDefinition();
+ish_void functionCall();
 
 #endif

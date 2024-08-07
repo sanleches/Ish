@@ -1,0 +1,14 @@
+#
+Ish Example
+The program is lexically correct about the SOFIA city 
+#
+
+
+	v ish_intg FoundationYear$;
+	v ish_flop Area%, HDI%;
+	v ish_thread CountryName@;
+	FoundationYear$ = -7000;
+	Area% = 492.0;
+	HDI%=0.871;
+	CountryName@ = 'Bulgary';
+	print&(CountryName$);
