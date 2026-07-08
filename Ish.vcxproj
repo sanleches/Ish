@@ -134,12 +134,14 @@
     <ClCompile Include="Parser.c" />
     <ClCompile Include="Reader.c" />
     <ClCompile Include="Scanner.c" />
+    <ClCompile Include="SymbolTable.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Compilers.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Reader.h" />
     <ClInclude Include="Scanner.h" />
+    <ClInclude Include="SymbolTable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

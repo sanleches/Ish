@@ -1,0 +1,10 @@
+# Ish volume example #
+
+v ish_flop PI;
+v ish_flop r;
+v ish_flop Vol;
+
+PI = 3.14;
+input(r);
+Vol = 4.0 / 3.0 * PI * (r * r * r);
+print(Vol);

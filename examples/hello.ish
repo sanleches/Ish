@@ -1,0 +1,7 @@
+## Ish hello world example
+
+funk sayHello() {
+    print("Hello, world!");
+}
+
+sayHello();

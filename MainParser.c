@@ -2,11 +2,11 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2024
-* Author: BY Santiago Ugarte(041090461) & Isha Gadani(041085940)
+* Author: Santiago Ugarte
 * Professors: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
-						"\t|  ISH LANGUAGE - BY Santiago Ugarte & Isha Gadani     |\n"
+						"\t|  ISH LANGUAGE COMPILER                              |\n"
 						"\t=------------------------------------------------------=\n"
 
 		"::::::::::::::::::::::::::::::'####:'######:'##::::'##:::::::::::::::::::::::::::::::::::::\n"
@@ -31,7 +31,7 @@
 ************************************************************
 * File name: MainParser.c
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012, 013]
+* Course: CST 8152 ï¿½ Compilers, Lab Section: [011, 012, 013]
 * Assignment: A32.
 * Date: May 01 2023
 * Professor: Paulo Sousa
@@ -90,8 +90,8 @@
 
  /* Global objects - variables */
 static BufferPointer sourceBuffer; /* pointer to input (source) buffer */
-BufferPointer stringLiteralTable; /* This buffer is used as a repository for string literals */
-ish_intg errorNumber;     /* Run-time error number = 0 by default (ANSI) */
+extern BufferPointer stringLiteralTable; /* This buffer is used as a repository for string literals */
+extern ish_intg errorNumber;     /* Run-time error number = 0 by default (ANSI) */
 
 /* External objects */
 extern ish_intg syntaxErrorNumber /* number of syntax errors reported by the parser */;

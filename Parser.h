@@ -2,11 +2,11 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2024
-* Author: BY Santiago Ugarte(041090461) & Isha Gadani(041085940)
+* Author: Santiago Ugarte
 * Professors: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
-						"\t|  ISH LANGUAGE - BY Santiago Ugarte & Isha Gadani     |\n"
+						"\t|  ISH LANGUAGE COMPILER                              |\n"
 						"\t=------------------------------------------------------=\n"
 
 		"::::::::::::::::::::::::::::::'####:'######:'##::::'##:::::::::::::::::::::::::::::::::::::\n"
@@ -31,7 +31,7 @@
 ************************************************************
 * File name: Parser.h
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012]
+* Course: CST 8152 ï¿½ Compilers, Lab Section: [011, 012]
 * Assignment: A32.
 * Date: May 01 2023
 * Professor: Paulo Sousa
@@ -57,21 +57,18 @@
 #ifndef SCANNER_H_
 #include "Scanner.h"
 #endif
+#ifndef SYMBOL_TABLE_H_
+#include "SymbolTable.h"
+#endif
 
 /* Global vars */
-static Token			lookahead;
+extern Token			lookahead;
 extern BufferPointer	stringLiteralTable;
 extern ish_intg			line;
 extern Token			tokenizer(ish_void);
 extern ish_thread		keywordTable[KWT_SIZE];
-static ish_intg			syntaxErrorNumber = 0;
-static ish_thread		NEWLINE_CHARACTER = (char)10;
-
-#define LANG_WRTE		"print&"
-#define LANG_READ		"input&"
-#define LANG_MAIN		"main&"
-
-/* TO_DO: Create ALL constants for keywords (sequence given in table.h) */
+extern ish_intg			syntaxErrorNumber;
+static const ish_cha	NEWLINE_CHARACTER = '\n';
 
 /* Constants */
 enum KEYWORDS {
@@ -95,8 +92,7 @@ enum KEYWORDS {
 	KW_FALSE
 };
 
-/* TO_DO: Define the number of BNF rules */
-#define NUM_BNF_RULES 12
+#define NUM_BNF_RULES 19
 
 /* Parser */
 typedef struct parserData {
@@ -104,10 +100,11 @@ typedef struct parserData {
 } ParserData, * pParsData;
 
 /* Number of errors */
-ish_intg numParserErrors;
+extern ish_intg numParserErrors;
+extern ish_intg numSemanticErrors;
 
 /* Scanner data */
-ParserData psData;
+extern ParserData psData;
 
 /* Function definitions */
 ish_void startParser();
@@ -130,26 +127,16 @@ enum BNF_RULES {
 	BNF_statement,									/*  9 */
 	BNF_statements,									/* 10 */
 	BNF_statementsPrime,							/* 11 */
-	BNF_functionDefinition,							/* 12 */ //new for function ddefinitions
-	BNF_functionCall								/* 13 */ //new for calls
+	BNF_functionDefinition,							/* 12 */
+	BNF_functionCall,								/* 13 */
+	BNF_variableDeclaration,						/* 14 */
+	BNF_inputStatement,							/* 15 */
+	BNF_assignmentStatement,						/* 16 */
+	BNF_whileStatement,							/* 17 */
+	BNF_expression								/* 18 */
 };
 
-
-/* TO_DO: Define the list of keywords */
-static ish_thread BNFStrTable[NUM_BNF_RULES] = {
-	"BNF_error",
-	"BNF_codeSession",
-	"BNF_comment",
-	"BNF_dataSession",
-	"BNF_optVarListDeclarations",
-	"BNF_optionalStatements",
-	"BNF_outputStatement",
-	"BNF_outputVariableList",
-	"BNF_program",
-	"BNF_statement",
-	"BNF_statements",
-	"BNF_statementsPrime"
-};
+extern ish_thread BNFStrTable[NUM_BNF_RULES];
 
 /* Place ALL non-terminal function declarations */
 ish_void codeSession();
@@ -163,8 +150,18 @@ ish_void program();
 ish_void statement();
 ish_void statements();
 ish_void statementsPrime();
-/* Function declarations for new constructs */
 ish_void functionDefinition();
 ish_void functionCall();
+ish_void variableDeclaration();
+ish_void inputStatement();
+ish_void assignmentStatement();
+ish_void whileStatement();
+ish_void block();
+ish_void expressionUntil(ish_intg terminatorToken);
+ish_bool isTypeKeyword(ish_intg keyword);
+SymbolType symbolTypeFromKeyword(ish_intg keyword);
+ish_void semanticError(ish_thread message, ish_thread name);
+ish_void validateVariableUse(ish_thread name);
+ish_void validateFunctionUse(ish_thread name);
 
 #endif

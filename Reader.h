@@ -2,11 +2,11 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2024
-* Author: BY Santiago Ugarte(041090461) & Isha Gadani(041085940)
+* Author: Santiago Ugarte
 * Professors: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
-						"\t|  ISH LANGUAGE - BY Santiago Ugarte & Isha Gadani     |\n"
+						"\t|  ISH LANGUAGE COMPILER                              |\n"
 						"\t=------------------------------------------------------=\n"
 
 		"::::::::::::::::::::::::::::::'####:'######:'##::::'##:::::::::::::::::::::::::::::::::::::\n"
@@ -31,20 +31,13 @@
 ************************************************************
 * File name: Reader.h
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012]
+* Course: CST 8152 ï¿½ Compilers, Lab Section: [011, 012]
 * Assignment: A12.
 * Date: May 01 2024
 * Professor: Paulo Sousa
 * Purpose: This file is the main header for Reader (.h)
 ************************************************************
 */
-
-/*
- *.............................................................................
- * MAIN ADVICE:
- * Please check the "TODO" labels to develop your activity.
- *.............................................................................
- */
 
 #ifndef COMPILERS_H_
 #include "Compilers.h"

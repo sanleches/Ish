@@ -2,11 +2,11 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2024
-* Author: BY Santiago Ugarte(041090461) & Isha Gadani(041085940)
+* Author: Santiago Ugarte
 * Professors: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
-						"\t|  ISH LANGUAGE - BY Santiago Ugarte & Isha Gadani     |\n"
+						"\t|  ISH LANGUAGE COMPILER                              |\n"
 						"\t=------------------------------------------------------=\n"
 
 		"::::::::::::::::::::::::::::::'####:'######:'##::::'##:::::::::::::::::::::::::::::::::::::\n"
@@ -31,7 +31,7 @@
 ************************************************************
 * File name: MainScanner.c
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012]
+* Course: CST 8152 ï¿½ Compilers, Lab Section: [011, 012]
 * Assignment: A22, A32.
 * Date: May 01 2024
 * Purpose: This file is the main code for Scanner (A22)
@@ -41,10 +41,7 @@
 
 /*
  *.............................................................................
- * ADVICE 1:
- * Please check the "TODO" labels to develop your activity.
- *
- * ADVICE 2: Preprocessor directives
+ * Preprocessor directives
  * The #define _CRT_SECURE_NO_WARNINGS should be used in MS Visual Studio projects
  * to suppress the warnings about using "unsafe" functions like fopen()
  * and standard sting library functions defined in string.h.
@@ -86,8 +83,8 @@
  */
 
  /* Global objects - variables (used in other codes as external) */
-BufferPointer stringLiteralTable;	/* This buffer implements String Literal Table */
-ish_intg errorNumber;				/* Run-time error number = 0 by default (ANSI) */
+extern BufferPointer stringLiteralTable;	/* This buffer implements String Literal Table */
+extern ish_intg errorNumber;				/* Run-time error number = 0 by default (ANSI) */
 
 /* External objects */
 extern ish_intg line; /* Source code line numbers - defined in scanner.c */

@@ -34,3 +34,34 @@
 # VS Files
 .vs/
 .vs/*
+*.user
+*.suo
+*.vcxproj.user
+
+# Build directories
+build/
+out/
+x64/
+Win32/
+Debug/
+Release/
+Ish/x64/
+Ish/Win32/
+
+# Visual Studio build artifacts
+*.idb
+*.ilk
+*.pdb
+*.recipe
+*.tlog
+*.log
+*.lastbuildstate
+*.FileListAbsolute.txt
+
+# Local editor and OS files
+.vscode/
+.idea/
+*.swp
+*.tmp
+Thumbs.db
+.DS_Store

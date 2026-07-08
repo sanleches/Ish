@@ -2,11 +2,11 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2024
-* Author: BY Santiago Ugarte(041090461) & Isha Gadani(041085940)
+* Author: Santiago Ugarte
 * Professors: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
-						"\t|  ISH LANGUAGE - BY Santiago Ugarte & Isha Gadani     |\n"
+						"\t|  ISH LANGUAGE COMPILER                              |\n"
 						"\t=------------------------------------------------------=\n"
 
 		"::::::::::::::::::::::::::::::'####:'######:'##::::'##:::::::::::::::::::::::::::::::::::::\n"
@@ -31,7 +31,7 @@
 ************************************************************
 * File name: MainReader.c
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012]
+* Course: CST 8152 ï¿½ Compilers, Lab Section: [011, 012]
 * Assignment: A12, A22, A32.
 * Date: May 01 2024
 * Professor: Paulo Sousa
@@ -41,10 +41,7 @@
 
 /*
  *.............................................................................
- * ADVICE 1:
- * Please check the "TODO" labels to develop your activity.
- *
- * ADVICE 2: Preprocessor directives
+ * Preprocessor directives
  * The #define _CRT_SECURE_NO_WARNINGS should be used in MS Visual Studio projects
  * to suppress the warnings about using "unsafe" functions like fopen()
  * and standard sting library functions defined in string.h.
@@ -291,7 +288,7 @@ ish_void displayBuffer(Buffer* ptr_Buffer) {
 	printf("The capacity of the buffer is:  %d\n", readerGetSize(ptr_Buffer));
 	printf("The current size of the buffer is:  %d\n", readerGetPosWrte(ptr_Buffer));
 	printf("The operational mode of the buffer is: %c\n", readerGetMode(ptr_Buffer));
-	printf("The increment factor of the buffer is:  %lu\n", readerGetInc(ptr_Buffer));
+	printf("The increment factor of the buffer is:  %d\n", readerGetInc(ptr_Buffer));
 	printf("The first symbol in the buffer is:  %c\n", readerGetPosWrte(ptr_Buffer) ? *readerGetContent(ptr_Buffer, 0) : ' ');
 	printf("The value of the flags field is: %02hX\n", readerGetFlags(ptr_Buffer));
 	printf("%s", "Reader statistics : \n");

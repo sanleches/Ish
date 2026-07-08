@@ -2,11 +2,11 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2024
-* Author: BY Santiago Ugarte(041090461) & Isha Gadani(041085940)
+* Author: Santiago Ugarte
 * Professors: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
-						"\t|  ISH LANGUAGE - BY Santiago Ugarte & Isha Gadani     |\n"
+						"\t|  ISH LANGUAGE COMPILER                              |\n"
 						"\t=------------------------------------------------------=\n"
 
 		"::::::::::::::::::::::::::::::'####:'######:'##::::'##:::::::::::::::::::::::::::::::::::::\n"
@@ -31,21 +31,13 @@
 ***********************************************************
 * File name: Reader.c
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012, 013]
+* Course: CST 8152 ï¿½ Compilers, Lab Section: [011, 012, 013]
 * Assignment: A12.
 * Date: May 01 2024
 * Professor: Paulo Sousa
 * Purpose: This file is the main code for Buffer/Reader (A12)
 ************************************************************
 */
-
-/*
- *.............................................................................
- * MAIN ADVICE:
- * - Please check the "TODO" labels to develop your activity.
- * - Review the functions to use "Defensive Programming".
- *.............................................................................
- */
 
 #ifndef COMPILERS_H_
 #include "Compilers.h"
@@ -69,11 +61,6 @@
 *   mode = operational mode
 * Return value: bPointer (pointer to reader)
 * Algorithm: Allocation of memory according to inicial (default) values.
-* TODO ......................................................
-*	- Adjust datatypes for your LANGUAGE.	DONE
-*   - Use defensive programming
-*	- Check boundary conditions
-*	- Check flags.
 *************************************************************
 */
 BufferPointer readerCreate(ish_intg size, ish_intg increment, ish_intg mode) {
@@ -136,7 +123,6 @@ BufferPointer readerCreate(ish_intg size, ish_intg increment, ish_intg mode) {
 *   ch = char to be added
 * Return value:
 *	readerPointer (pointer to Buffer Reader)
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -146,14 +132,14 @@ BufferPointer readerCreate(ish_intg size, ish_intg increment, ish_intg mode) {
 BufferPointer readerAddChar(BufferPointer const readerPointer, ish_cha ch) {
 	// Check if the readerPointer is valid and not full
 	if (!readerPointer || readerIsFull(readerPointer)) {
-		return READER_ERROR; // Defensive programming: invalid reader or full
+		return NULL; // Defensive programming: invalid reader or full
 	}
 
 	// Start with setting the REL bit, as reallocation may occur
 	readerPointer->flags |= FLAG_REL;
 
 	// Check if the current position exceeds the allocated size
-	if (readerPointer->position.wrte * sizeof(ish_cha) >= readerPointer->size -1) {
+	if (readerPointer->position.wrte >= readerPointer->size - 1) {
 		// Determine the new size based on the mode
 		ish_intg newSize;
 		if (readerPointer->mode == MODE_FIXED) {
@@ -170,18 +156,18 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, ish_cha ch) {
 			newSize = readerPointer->size * readerPointer->increment;
 		}
 		else {
-			return  READER_ERROR; // Unknown mode, defensive programming
+			return NULL; // Unknown mode, defensive programming
 		}
 
 		// Check if the new size is valid and within limits
 		if (newSize <= readerPointer->size || newSize >= READER_MAX_SIZE) {
-			return READER_ERROR; // Invalid size or exceeds max limit
+			return NULL; // Invalid size or exceeds max limit
 		}
 
 		// Reallocate memory
 		ish_thread tempReader = (ish_thread)realloc(readerPointer->content, newSize);
 		if (!tempReader) {
-			return READER_ERROR; // Memory allocation failed
+			return NULL; // Memory allocation failed
 		}
 
 		// Check if the memory address has changed (set REL bit if true)
@@ -199,7 +185,7 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, ish_cha ch) {
 	readerPointer->flags &= ~FLAG_EMP; // Clear the empty flag
 
 	// Check if the reader is full after adding the character
-	if (readerPointer->position.wrte * sizeof(ish_cha) >= readerPointer->size) {
+	if (readerPointer->position.wrte >= readerPointer->size) {
 		readerPointer->flags |= FLAG_FUL; // Set the full flag
 	}
 
@@ -215,7 +201,6 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, ish_cha ch) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Boolean value about operation success
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -241,7 +226,6 @@ ish_bool readerClear(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Boolean value about operation success
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -267,7 +251,6 @@ ish_bool readerFree(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Boolean value about operation success
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -278,7 +261,7 @@ ish_bool readerIsFull(BufferPointer const readerPointer) {
 		return ISH_FALSE; // Defensive programming
 	}
 
-	return (readerPointer->position.wrte * sizeof(ish_cha) >= readerPointer->size);
+	return (readerPointer->position.wrte >= readerPointer->size);
 }
 
 
@@ -290,7 +273,6 @@ ish_bool readerIsFull(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Boolean value about operation success
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -313,7 +295,6 @@ ish_bool readerIsEmpty(BufferPointer const readerPointer) {
 *   mark = mark position for char
 * Return value:
 *	Boolean value about operation success
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -337,7 +318,6 @@ ish_bool readerSetMark(BufferPointer const readerPointer, ish_intg mark) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Number of chars printed.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -370,7 +350,6 @@ ish_intg readerPrint(BufferPointer const readerPointer) {
 *   fileDescriptor = pointer to file descriptor
 * Return value:
 *	Number of chars read and put in buffer.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -404,7 +383,6 @@ ish_intg readerLoad(BufferPointer const readerPointer, FILE* const fileDescripto
 *   readerPointer = pointer to Buffer Reader
 * Return value
 *	Boolean value about operation success
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -428,7 +406,6 @@ ish_bool readerRecover(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Boolean value about operation success
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -452,7 +429,6 @@ ish_bool readerRetract(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Boolean value about operation success
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -476,7 +452,6 @@ ish_bool readerRestore(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Char in the getC position.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -500,7 +475,6 @@ ish_cha readerGetChar(BufferPointer const readerPointer) {
 *   pos = position to get the pointer
 * Return value:
 *	Position of string char.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -524,7 +498,6 @@ ish_cha* readerGetContent(BufferPointer const readerPointer, ish_intg pos) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	The read position offset.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -547,7 +520,6 @@ ish_intg readerGetPosRead(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Write position
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -570,7 +542,6 @@ ish_intg readerGetPosWrte(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Mark position.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -593,7 +564,6 @@ ish_intg readerGetPosMark(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Size of buffer.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -615,7 +585,6 @@ ish_intg readerGetSize(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	The Buffer increment.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -637,7 +606,6 @@ ish_intg readerGetInc(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Operational mode.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -660,7 +628,6 @@ ish_intg readerGetMode(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Flags from Buffer.
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.
@@ -683,7 +650,6 @@ ish_byte readerGetFlags(BufferPointer const readerPointer) {
 * Parameters:
 *   readerPointer = pointer to Buffer Reader
 * Return value: (Void)
-* TO_DO:
 *   - Use defensive programming
 *	- Adjust for your LANGUAGE.
 *************************************************************
@@ -711,7 +677,6 @@ ish_bool readerPrintStat(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	Number of errors.
-* TO_DO:
 *   - Use defensive programming
 *	- Adjust for your LANGUAGE.
 *************************************************************
@@ -732,7 +697,6 @@ ish_intg readerNumErrors(BufferPointer const readerPointer) {
 *   readerPointer = pointer to Buffer Reader
 * Return value:
 *	[None]
-* TO_DO:
 *   - Use defensive programming
 *	- Check boundary conditions
 *	- Adjust for your LANGUAGE.

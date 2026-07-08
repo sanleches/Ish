@@ -2,11 +2,11 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2024
-* Author: BY Santiago Ugarte(041090461) & Isha Gadani(041085940) 
+* Author: Santiago Ugarte
 * Professors: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
-						"\t|  ISH LANGUAGE - BY Santiago Ugarte & Isha Gadani     |\n"
+						"\t|  ISH LANGUAGE COMPILER                              |\n"
 						"\t=------------------------------------------------------=\n"
 
 		"::::::::::::::::::::::::::::::'####:'######:'##::::'##:::::::::::::::::::::::::::::::::::::\n"
@@ -34,7 +34,7 @@
 ************************************************************
 * File name: Compilers.h
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012]
+* Course: CST 8152 ï¿½ Compilers, Lab Section: [011, 012]
 * Assignment: A12, A22, A32.
 * Date: May 01 2024
 * Professor: Paulo Sousa
@@ -46,7 +46,7 @@
 #define COMPILERS_H_
 
 // Debug mode flag
-#define DEBUG 1
+#define DEBUG 0
 
 // Language name
 #define STR_LANGNAME    "Ish"
@@ -70,7 +70,7 @@ typedef long            ish_long;       // Long integer data type
 typedef double          ish_doub;       // Double precision floating point data type
 typedef unsigned char   ish_byte;       // Byte data type
 //SPECIFIC DATATYPES
-// PENDING Isha WAS HEREEEEEEE
+
 
 // Size and range definitions for Ish data types
 #define ISH_NUMI_SIZE   4
@@ -78,7 +78,7 @@ typedef unsigned char   ish_byte;       // Byte data type
 #define ISH_NUMI_MAX    2147483647
 
 #define ISH_FLOP_SIZE   4
-// Floating point range: Approximately ±3.4E-38 to ±3.4E+38
+// Floating point range: Approximately ï¿½3.4E-38 to ï¿½3.4E+38
 
 // String size is variable and limited by memory
 // Char size is variable (usually 1 byte) and limited to ASCII range

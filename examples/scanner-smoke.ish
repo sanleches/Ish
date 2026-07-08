@@ -1,0 +1,8 @@
+"sample string"
+12.13
+## single line comment
+# multiple line comment #
+(identifier)
+{ block }
+v ish_intg number = 5 + 2;
+v ish_flop ratio = 4.0 / 2.0;
