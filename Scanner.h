@@ -1,9 +1,9 @@
 /*
 ************************************************************
-* COMPILERS COURSE - Algonquin College
-* Code version: Summer, 2024
+* Ish Compiler Project
+* Version: 0.1.0
 * Author: Santiago Ugarte
-* Professors: Paulo Sousa
+* Reviewer: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
 						"\t|  ISH LANGUAGE COMPILER                              |\n"
@@ -31,10 +31,8 @@
 ************************************************************
 * File name: Scanner.h
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 � Compilers, Lab Section: [011, 012]
-* Assignment: A22, A32.
-* Date: May 01 2024
-* Purpose: This file is the main header for Scanner (.h)
+* Project: Ish Compiler
+* Purpose: This file declares lexer tokens, token attributes, and scanner APIs.
 * Function list: (...).
 *************************************************************/
 

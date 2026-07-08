@@ -1,9 +1,9 @@
 /*
 ************************************************************
-* COMPILERS COURSE - Algonquin College
-* Code version: Summer, 2024
+* Ish Compiler Project
+* Version: 0.1.0
 * Author: Santiago Ugarte
-* Professors: Paulo Sousa
+* Reviewer: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
 						"\t|  ISH LANGUAGE COMPILER                              |\n"
@@ -31,11 +31,8 @@
 ************************************************************
 * File name: Parser.h
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 � Compilers, Lab Section: [011, 012]
-* Assignment: A32.
-* Date: May 01 2023
-* Professor: Paulo Sousa
-* Purpose: This file is the main header for Parser (.h)
+* Project: Ish Compiler
+* Purpose: This file declares parser, AST, and semantic-analysis front-end APIs.
 ************************************************************
 */
 
@@ -60,6 +57,9 @@
 #ifndef SYMBOL_TABLE_H_
 #include "SymbolTable.h"
 #endif
+#ifndef AST_H_
+#include "Ast.h"
+#endif
 
 /* Global vars */
 extern Token			lookahead;
@@ -69,6 +69,7 @@ extern Token			tokenizer(ish_void);
 extern ish_thread		keywordTable[KWT_SIZE];
 extern ish_intg			syntaxErrorNumber;
 static const ish_cha	NEWLINE_CHARACTER = '\n';
+extern ish_bool parserDumpAst;
 
 /* Constants */
 enum KEYWORDS {

@@ -1,9 +1,9 @@
 /*
 ************************************************************
-* COMPILERS COURSE - Algonquin College
-* Code version: Summer, 2024
+* Ish Compiler Project
+* Version: 0.1.0
 * Author: Santiago Ugarte
-* Professors: Paulo Sousa
+* Reviewer: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
 						"\t|  ISH LANGUAGE COMPILER                              |\n"
@@ -34,11 +34,8 @@
 ************************************************************
 * File name: Compilers.h
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 � Compilers, Lab Section: [011, 012]
-* Assignment: A12, A22, A32.
-* Date: May 01 2024
-* Professor: Paulo Sousa
-* Purpose: This file defines the functions called by main function.
+* Project: Ish Compiler
+* Purpose: This file defines shared compiler types and tool entry points.
 * Function list: mainReader(), mainScanner(), mainParser().
 *************************************************************/
 

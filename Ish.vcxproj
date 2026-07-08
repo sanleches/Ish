@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Ast.c" />
     <ClCompile Include="Compilers.c" />
     <ClCompile Include="MainParser.c" />
     <ClCompile Include="MainReader.c" />
@@ -137,6 +138,7 @@
     <ClCompile Include="SymbolTable.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Ast.h" />
     <ClInclude Include="Compilers.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Reader.h" />

@@ -1,9 +1,9 @@
 /*
 ************************************************************
-* COMPILERS COURSE - Algonquin College
-* Code version: Summer, 2024
+* Ish Compiler Project
+* Version: 0.1.0
 * Author: Santiago Ugarte
-* Professors: Paulo Sousa
+* Reviewer: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
 						"\t|  ISH LANGUAGE COMPILER                              |\n"
@@ -31,11 +31,8 @@
 ************************************************************
 * File name: Reader.h
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 � Compilers, Lab Section: [011, 012]
-* Assignment: A12.
-* Date: May 01 2024
-* Professor: Paulo Sousa
-* Purpose: This file is the main header for Reader (.h)
+* Project: Ish Compiler
+* Purpose: This file declares the dynamic source reader/buffer API.
 ************************************************************
 */
 

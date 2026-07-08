@@ -1,9 +1,9 @@
 ﻿/*
 ************************************************************
-* COMPILERS COURSE - Algonquin College
-* Code version: Summer, 2024
+* Ish Compiler Project
+* Version: 0.1.0
 * Author: Santiago Ugarte
-* Professors: Paulo Sousa
+* Reviewer: Paulo Sousa
 ************************************************************
                         "\t=------------------------------------------------------=\n"
                         "\t|  ISH LANGUAGE COMPILER                              |\n"
@@ -31,10 +31,8 @@
 ************************************************************
 * File name: Parser.c
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012]
-* Assignment: A32.
-* Date: May 01 2023
-* Purpose: This file contains all functionalities from Parser.
+* Project: Ish Compiler
+* Purpose: This file implements parsing, AST construction, and initial semantic checks.
 * Function list: (...).
 ************************************************************
 */
@@ -52,7 +50,12 @@ Token lookahead;
 ish_intg syntaxErrorNumber = 0;
 ish_intg numParserErrors = 0;
 ish_intg numSemanticErrors = 0;
+ish_bool parserDumpAst = ISH_FALSE;
 static SymbolTable symbolTable;
+static AstTree astTree;
+static ish_intg astCurrent = AST_NO_NODE;
+static ish_intg astParentStack[AST_MAX_NODES];
+static ish_intg astParentStackTop = 0;
 ParserData psData; /* BNF statistics */
 ish_thread BNFStrTable[NUM_BNF_RULES] = {
     "BNF_error",
@@ -76,6 +79,20 @@ ish_thread BNFStrTable[NUM_BNF_RULES] = {
     "BNF_expression"
 };
 
+static ish_intg astOpen(AstNodeKind kind, ish_thread label);
+static ish_void astClose(ish_void);
+static ish_void astLeaf(AstNodeKind kind, ish_thread label);
+static ish_intg parseExpressionNode(ish_intg terminatorToken);
+static ish_intg parseComparisonExpression(ish_intg terminatorToken);
+static ish_intg parseAdditiveExpression(ish_intg terminatorToken);
+static ish_intg parseMultiplicativeExpression(ish_intg terminatorToken);
+static ish_intg parsePrimaryExpression(ish_intg terminatorToken);
+static ish_bool isExpressionBoundary(ish_intg tokenCode, ish_intg terminatorToken);
+static ish_bool isAdditiveOperator(Token token);
+static ish_bool isMultiplicativeOperator(Token token);
+static ish_void binaryOperatorLabel(Token token, ish_thread label, ish_intg labelSize);
+static ish_void literalLabel(Token token, ish_thread label, ish_intg labelSize);
+
 /* Function to start the parser */
 ish_void startParser() {
     /* Initialize Parser data */
@@ -85,6 +102,9 @@ ish_void startParser() {
     }
     numSemanticErrors = 0;
     symbolTableInit(&symbolTable);
+    astInit(&astTree);
+    astCurrent = astAddNode(&astTree, AST_NO_NODE, AST_PROGRAM, NULL, line);
+    astParentStackTop = 0;
     /* Proceed parser */
     lookahead = tokenizer();
     if (lookahead.code != SEOF_T) {
@@ -93,6 +113,8 @@ ish_void startParser() {
     matchToken(SEOF_T, NO_ATTR);
     printf("%s%s\n", STR_LANGNAME, ": Source file parsed");
     printf("%s: Semantic errors: %d\n", STR_LANGNAME, numSemanticErrors);
+    if (parserDumpAst)
+        astPrint(&astTree);
 }
 
 /* Function to match tokens */
@@ -210,6 +232,7 @@ ish_void program() {
 
 ish_void comment() {
     psData.parsHistogram[BNF_comment]++;
+    astLeaf(AST_COMMENT, NULL);
     matchToken(CMT_T, NO_ATTR);
     printf("%s%s\n", STR_LANGNAME, ": Comment parsed");
 }
@@ -290,9 +313,11 @@ ish_void statement() {
             whileStatement();
             break;
         case KW_return:
+            astOpen(AST_RETURN, NULL);
             matchToken(KW_T, KW_return);
             expressionUntil(EOS_T);
             matchToken(EOS_T, NO_ATTR);
+            astClose();
             break;
         default:
             printError();
@@ -316,11 +341,13 @@ ish_void statement() {
 /* Function for the output statement non-terminal */
 ish_void outputStatement() {
     psData.parsHistogram[BNF_outputStatement]++;
+    astOpen(AST_PRINT, NULL);
     matchToken(KW_T, KW_print);
     matchToken(LPR_T, NO_ATTR);
     outputVariableList();
     matchToken(RPR_T, NO_ATTR);
     matchToken(EOS_T, NO_ATTR);
+    astClose();
     printf("%s%s\n", STR_LANGNAME, ": Output statement parsed");
 }
 
@@ -345,8 +372,12 @@ ish_void printBNFData(ParserData psData) {
 ish_void functionDefinition() {
     psData.parsHistogram[BNF_functionDefinition]++;
     matchToken(KW_T, KW_funk);  // Match the function keyword
+    ish_cha functionName[VID_LEN + 1] = { 0 };
+    if (lookahead.code == ID_T)
+        strncpy(functionName, lookahead.attribute.idLexeme, VID_LEN);
     if (lookahead.code == ID_T && !symbolTableDeclare(&symbolTable, lookahead.attribute.idLexeme, SYMBOL_FUNCTION, SYMBOL_TYPE_VOID, line))
         semanticError("duplicate function declaration", lookahead.attribute.idLexeme);
+    astOpen(AST_FUNCTION_DECL, functionName);
     matchToken(ID_T, NO_ATTR);  // Match the function name
     matchToken(LPR_T, NO_ATTR); // Match opening parenthesis
     matchToken(RPR_T, NO_ATTR); // Match closing parenthesis
@@ -355,6 +386,7 @@ ish_void functionDefinition() {
     optionalStatements(); // Parse function body
     symbolTableLeaveScope(&symbolTable);
     matchToken(RBR_T, NO_ATTR); // Match closing curly brace
+    astClose();
     printf("%s%s\n", STR_LANGNAME, ": Function definition parsed");
 }
 
@@ -362,11 +394,13 @@ ish_void functionCall() {
     psData.parsHistogram[BNF_functionCall]++;
     if (lookahead.code == ID_T)
         validateFunctionUse(lookahead.attribute.idLexeme);
+    astOpen(AST_FUNCTION_CALL, lookahead.code == ID_T ? lookahead.attribute.idLexeme : NULL);
     matchToken(ID_T, NO_ATTR);  // Match function call name
     matchToken(LPR_T, NO_ATTR); // Match opening parenthesis
     expressionUntil(RPR_T);
     matchToken(RPR_T, NO_ATTR); // Match closing parenthesis
     matchToken(EOS_T, NO_ATTR); // Match end of statement
+    astClose();
     printf("%s%s\n", STR_LANGNAME, ": Function call parsed");
 }
 
@@ -383,6 +417,10 @@ ish_void variableDeclaration() {
         printError();
 
     while (lookahead.code != EOS_T && lookahead.code != SEOF_T) {
+        ish_cha declarationLabel[AST_LABEL_LEN] = { 0 };
+        if (lookahead.code == ID_T)
+            snprintf(declarationLabel, AST_LABEL_LEN, "%s %s", keywordTable[type == SYMBOL_TYPE_INT ? KW_numi : type == SYMBOL_TYPE_FLOAT ? KW_flop : type == SYMBOL_TYPE_STRING ? KW_thread : type == SYMBOL_TYPE_LONG ? KW_longint : KW_v], lookahead.attribute.idLexeme);
+        astOpen(AST_VAR_DECL, declarationLabel);
         if (lookahead.code == ID_T && !symbolTableDeclare(&symbolTable, lookahead.attribute.idLexeme, SYMBOL_VARIABLE, type, line))
             semanticError("duplicate variable declaration", lookahead.attribute.idLexeme);
         matchToken(ID_T, NO_ATTR);
@@ -394,10 +432,12 @@ ish_void variableDeclaration() {
                 lookahead = tokenizer();
             }
         }
-        if (lookahead.code == COM_T)
+        astClose();
+        if (lookahead.code == COM_T) {
             matchToken(COM_T, NO_ATTR);
-        else
-            break;
+            continue;
+        }
+        break;
     }
 
     matchToken(EOS_T, NO_ATTR);
@@ -406,6 +446,7 @@ ish_void variableDeclaration() {
 
 ish_void inputStatement() {
     psData.parsHistogram[BNF_inputStatement]++;
+    astOpen(AST_INPUT, NULL);
     matchToken(KW_T, KW_input);
     matchToken(LPR_T, NO_ATTR);
     if (lookahead.code != RPR_T) {
@@ -421,6 +462,7 @@ ish_void inputStatement() {
     }
     matchToken(RPR_T, NO_ATTR);
     matchToken(EOS_T, NO_ATTR);
+    astClose();
     printf("%s%s\n", STR_LANGNAME, ": Input statement parsed");
 }
 
@@ -432,24 +474,29 @@ ish_void assignmentStatement() {
     if (lookahead.code == LPR_T) {
         psData.parsHistogram[BNF_functionCall]++;
         validateFunctionUse(name);
+        astOpen(AST_FUNCTION_CALL, name);
         matchToken(LPR_T, NO_ATTR);
         expressionUntil(RPR_T);
         matchToken(RPR_T, NO_ATTR);
         matchToken(EOS_T, NO_ATTR);
+        astClose();
         printf("%s%s\n", STR_LANGNAME, ": Function call parsed");
         return;
     }
 
     psData.parsHistogram[BNF_assignmentStatement]++;
     validateVariableUse(name);
+    astOpen(AST_ASSIGNMENT, name);
     matchToken(EQ_T, NO_ATTR);
     expressionUntil(EOS_T);
     matchToken(EOS_T, NO_ATTR);
+    astClose();
     printf("%s%s\n", STR_LANGNAME, ": Assignment statement parsed");
 }
 
 ish_void whileStatement() {
     psData.parsHistogram[BNF_whileStatement]++;
+    astOpen(AST_WHILE, NULL);
     matchToken(KW_T, KW_while);
     matchToken(LPR_T, NO_ATTR);
     expressionUntil(RPR_T);
@@ -457,24 +504,39 @@ ish_void whileStatement() {
     block();
     if (lookahead.code == EOS_T)
         matchToken(EOS_T, NO_ATTR);
+    astClose();
     printf("%s%s\n", STR_LANGNAME, ": While statement parsed");
 }
 
 ish_void block() {
     matchToken(LBR_T, NO_ATTR);
+    astOpen(AST_BLOCK, NULL);
     optionalStatements();
+    astClose();
     matchToken(RBR_T, NO_ATTR);
 }
 
 ish_void expressionUntil(ish_intg terminatorToken) {
-    if (lookahead.code == terminatorToken)
+    if (isExpressionBoundary(lookahead.code, terminatorToken))
         return;
 
     psData.parsHistogram[BNF_expression]++;
-    while (lookahead.code != terminatorToken && lookahead.code != SEOF_T) {
-        if (lookahead.code == ID_T)
-            validateVariableUse(lookahead.attribute.idLexeme);
-        lookahead = tokenizer();
+    ish_intg expressionNode = astAddNode(&astTree, astCurrent, AST_EXPRESSION, NULL, line);
+
+    while (!isExpressionBoundary(lookahead.code, terminatorToken)) {
+        ish_intg child = parseExpressionNode(terminatorToken);
+        if (child != AST_NO_NODE)
+            astAppendChild(&astTree, expressionNode, child);
+
+        if (lookahead.code == COM_T && terminatorToken != COM_T) {
+            matchToken(COM_T, NO_ATTR);
+            continue;
+        }
+
+        if (!isExpressionBoundary(lookahead.code, terminatorToken)) {
+            printError();
+            lookahead = tokenizer();
+        }
     }
 }
 
@@ -510,4 +572,168 @@ ish_void validateVariableUse(ish_thread name) {
 ish_void validateFunctionUse(ish_thread name) {
     if (!symbolTableLookup(&symbolTable, name, SYMBOL_FUNCTION))
         semanticError("undefined function", name);
+}
+
+static ish_intg astOpen(AstNodeKind kind, ish_thread label) {
+    ish_intg node = astAddNode(&astTree, astCurrent, kind, label, line);
+    if (node == AST_NO_NODE)
+        return AST_NO_NODE;
+    if (astParentStackTop < AST_MAX_NODES)
+        astParentStack[astParentStackTop++] = astCurrent;
+    astCurrent = node;
+    return node;
+}
+
+static ish_void astClose(ish_void) {
+    if (astParentStackTop > 0)
+        astCurrent = astParentStack[--astParentStackTop];
+}
+
+static ish_void astLeaf(AstNodeKind kind, ish_thread label) {
+    astAddNode(&astTree, astCurrent, kind, label, line);
+}
+
+static ish_intg parseExpressionNode(ish_intg terminatorToken) {
+    return parseComparisonExpression(terminatorToken);
+}
+
+static ish_intg parseComparisonExpression(ish_intg terminatorToken) {
+    ish_intg left = parseAdditiveExpression(terminatorToken);
+
+    while (lookahead.code == REL_T) {
+        Token op = lookahead;
+        ish_cha label[AST_LABEL_LEN] = { 0 };
+        binaryOperatorLabel(op, label, AST_LABEL_LEN);
+        lookahead = tokenizer();
+
+        ish_intg right = parseAdditiveExpression(terminatorToken);
+        ish_intg binary = astCreateNode(&astTree, AST_BINARY_EXPR, label, line);
+        astAppendChild(&astTree, binary, left);
+        astAppendChild(&astTree, binary, right);
+        left = binary;
+    }
+
+    return left;
+}
+
+static ish_intg parseAdditiveExpression(ish_intg terminatorToken) {
+    ish_intg left = parseMultiplicativeExpression(terminatorToken);
+
+    while (isAdditiveOperator(lookahead)) {
+        Token op = lookahead;
+        ish_cha label[AST_LABEL_LEN] = { 0 };
+        binaryOperatorLabel(op, label, AST_LABEL_LEN);
+        lookahead = tokenizer();
+
+        ish_intg right = parseMultiplicativeExpression(terminatorToken);
+        ish_intg binary = astCreateNode(&astTree, AST_BINARY_EXPR, label, line);
+        astAppendChild(&astTree, binary, left);
+        astAppendChild(&astTree, binary, right);
+        left = binary;
+    }
+
+    return left;
+}
+
+static ish_intg parseMultiplicativeExpression(ish_intg terminatorToken) {
+    ish_intg left = parsePrimaryExpression(terminatorToken);
+
+    while (isMultiplicativeOperator(lookahead)) {
+        Token op = lookahead;
+        ish_cha label[AST_LABEL_LEN] = { 0 };
+        binaryOperatorLabel(op, label, AST_LABEL_LEN);
+        lookahead = tokenizer();
+
+        ish_intg right = parsePrimaryExpression(terminatorToken);
+        ish_intg binary = astCreateNode(&astTree, AST_BINARY_EXPR, label, line);
+        astAppendChild(&astTree, binary, left);
+        astAppendChild(&astTree, binary, right);
+        left = binary;
+    }
+
+    return left;
+}
+
+static ish_intg parsePrimaryExpression(ish_intg terminatorToken) {
+    if (isExpressionBoundary(lookahead.code, terminatorToken))
+        return AST_NO_NODE;
+
+    Token token = lookahead;
+    ish_cha label[AST_LABEL_LEN] = { 0 };
+
+    switch (token.code) {
+    case ID_T:
+        strncpy(label, token.attribute.idLexeme, AST_LABEL_LEN - 1);
+        lookahead = tokenizer();
+        if (lookahead.code == LPR_T) {
+            validateFunctionUse(label);
+            ish_intg call = astCreateNode(&astTree, AST_FUNCTION_CALL, label, line);
+            matchToken(LPR_T, NO_ATTR);
+            while (lookahead.code != RPR_T && lookahead.code != SEOF_T) {
+                ish_intg argument = parseExpressionNode(RPR_T);
+                astAppendChild(&astTree, call, argument);
+                if (lookahead.code == COM_T)
+                    matchToken(COM_T, NO_ATTR);
+                else
+                    break;
+            }
+            matchToken(RPR_T, NO_ATTR);
+            return call;
+        }
+        validateVariableUse(label);
+        return astCreateNode(&astTree, AST_IDENTIFIER, label, line);
+    case INL_T:
+    case FL_T:
+    case STR_T:
+        literalLabel(token, label, AST_LABEL_LEN);
+        lookahead = tokenizer();
+        return astCreateNode(&astTree, AST_LITERAL, label, line);
+    case LPR_T:
+        matchToken(LPR_T, NO_ATTR);
+        ish_intg grouped = parseExpressionNode(RPR_T);
+        matchToken(RPR_T, NO_ATTR);
+        return grouped;
+    default:
+        printError();
+        lookahead = tokenizer();
+        return AST_NO_NODE;
+    }
+}
+
+static ish_bool isExpressionBoundary(ish_intg tokenCode, ish_intg terminatorToken) {
+    return tokenCode == terminatorToken || tokenCode == SEOF_T || tokenCode == EOS_T || tokenCode == RPR_T;
+}
+
+static ish_bool isAdditiveOperator(Token token) {
+    return token.code == AO_T && (token.attribute.arithmeticOperator == OP_ADD || token.attribute.arithmeticOperator == OP_SUB);
+}
+
+static ish_bool isMultiplicativeOperator(Token token) {
+    return token.code == AO_T && (token.attribute.arithmeticOperator == OP_MUL || token.attribute.arithmeticOperator == OP_DIV || token.attribute.arithmeticOperator == OP_MOD);
+}
+
+static ish_void binaryOperatorLabel(Token token, ish_thread label, ish_intg labelSize) {
+    if (token.code == REL_T) {
+        snprintf(label, labelSize, "%s", token.attribute.relationalOperator == OP_EQ ? "==" : token.attribute.relationalOperator == OP_NE ? "<>" : token.attribute.relationalOperator == OP_GT ? ">" : "<");
+        return;
+    }
+
+    snprintf(label, labelSize, "%c", token.attribute.arithmeticOperator == OP_ADD ? '+' : token.attribute.arithmeticOperator == OP_SUB ? '-' : token.attribute.arithmeticOperator == OP_MUL ? '*' : token.attribute.arithmeticOperator == OP_DIV ? '/' : '%');
+}
+
+static ish_void literalLabel(Token token, ish_thread label, ish_intg labelSize) {
+    switch (token.code) {
+    case INL_T:
+        snprintf(label, labelSize, "%d", token.attribute.intValue);
+        break;
+    case FL_T:
+        snprintf(label, labelSize, "%g", token.attribute.floatValue);
+        break;
+    case STR_T:
+        snprintf(label, labelSize, "\"%s\"", readerGetContent(stringLiteralTable, token.attribute.contentString));
+        break;
+    default:
+        snprintf(label, labelSize, "?");
+        break;
+    }
 }

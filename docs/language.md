@@ -57,7 +57,7 @@ The current parser accepts the showcase examples under `examples/`:
 - Simple `while (...) { ... }` blocks.
 - Duplicate declaration and undefined symbol checks.
 
-Expression tokens are currently consumed as sequences and are not yet represented as AST nodes. Full precedence-aware expression parsing is the next parser milestone.
+Expressions are represented as AST nodes with precedence for relational, additive, multiplicative, primary, and parenthesized expressions. Assignment remains statement-level in the current parser.
 
 ## Diagnostics
 

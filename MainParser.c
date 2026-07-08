@@ -1,9 +1,9 @@
 /*
 ************************************************************
-* COMPILERS COURSE - Algonquin College
-* Code version: Summer, 2024
+* Ish Compiler Project
+* Version: 0.1.0
 * Author: Santiago Ugarte
-* Professors: Paulo Sousa
+* Reviewer: Paulo Sousa
 ************************************************************
 						"\t=------------------------------------------------------=\n"
 						"\t|  ISH LANGUAGE COMPILER                              |\n"
@@ -31,11 +31,8 @@
 ************************************************************
 * File name: MainParser.c
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 � Compilers, Lab Section: [011, 012, 013]
-* Assignment: A32.
-* Date: May 01 2023
-* Professor: Paulo Sousa
-* Purpose: This file is the main code for Parser (A32)
+* Project: Ish Compiler
+* Purpose: This file implements the parser command mode.
 * Function list: (...).
 ************************************************************
 */
@@ -132,14 +129,18 @@ ish_intg mainParser(ish_intg argc, ish_thread* argv) {
 	ish_intg loadsize = 0; /*the size of the file loaded in the buffer */
 
 	/*check for correct arrguments - source file name */
-	if (argc <= 1) {
+	if (argc <= 2) {
 		/* __DATE__, __TIME__, __LINE__, __FILE__ are predefined preprocessor macros*/
 		printParserError("Date: %s  Time: %s", __DATE__, __TIME__);
 		printParserError("Runtime error at line %d in file %s", __LINE__, __FILE__);
 		printParserError("%s%s%s", argv[0], ": ", "Missing source file name.");
-		printParserError("%s%s%s", "Usage: ", "parser", "  source_file_name");
+		printParserError("%s%s%s", "Usage: ", "parser", " source_file_name [--dump-ast]");
 		exit(EXIT_FAILURE);
 	}
+
+	parserDumpAst = ISH_FALSE;
+	if (argc > 3 && strcmp(argv[3], "--dump-ast") == 0)
+		parserDumpAst = ISH_TRUE;
 
 	/* create a source code input buffer - multiplicative mode */
 	sourceBuffer = readerCreate(READER_DEFAULT_SIZE, READER_DEFAULT_INCREMENT, MODE_MULTI);
